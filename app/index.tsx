@@ -1,6 +1,7 @@
 import { TextInput, View } from "react-native";
 
-import Cell from "@/components/Row";
+import Cell from "@/components/Cell";
+import { useEffect, useState } from "react";
 
 
 
@@ -8,9 +9,32 @@ export default function Index() {
   const WORDS_LENGTH = 5;
   const MAX_ATTEMPTS = 5;
 
-  const attempts = Array.from( { length: MAX_ATTEMPTS }, () => Array( WORDS_LENGTH ).fill( null ) );
-  const attempt = [ "h", "e", "l", "l", "0" ];
-  attempts[ 0 ] = attempt;
+  const [ currentGuess, setCurrentGuess ] = useState<string[]>( [] );
+  const [ allGuesses, setAllGuesses ] = useState<string[][]>( [ [] ] );
+
+  // Test to see board is working
+  useEffect( () => {
+    setAllGuesses( [
+      [ "a", "b", "c", "d", "a" ],
+      [ "a", "b", "c", "d", "a" ],
+      [ "a", "b", "c", "d", "a" ],
+    ] );
+    setCurrentGuess( [ "a", "c", "a", ] );
+  }, [] );
+
+
+  // Board setup using all guesses and current guess
+  const board = Array.from( { length: MAX_ATTEMPTS }, ( _, i ) => {
+    if ( i < allGuesses.length ) {
+      return allGuesses[ i ];
+    }
+    else if ( i === allGuesses.length && allGuesses.length < MAX_ATTEMPTS ) {
+      return currentGuess;
+    }
+    else {
+      return [];
+    }
+  } );
 
   return (
     <View
@@ -24,10 +48,10 @@ export default function Index() {
     >
 
       {
-        Array.from( { length: MAX_ATTEMPTS } ).map( ( _, i ) => (
+        board.map( ( word, i ) => (
           <View key={ i } style={ { flexDirection: "row", gap: 10 } }>
             { Array.from( { length: WORDS_LENGTH } ).map( ( _, j ) => (
-              <Cell key={ j } letter={ attempts[ i ][ j ] } />
+              <Cell key={ j } letter={ word[ j ] || '' } />
             ) ) }
           </View>
         ) )
