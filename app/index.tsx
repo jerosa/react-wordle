@@ -1,8 +1,7 @@
-import { TextInput, View } from "react-native";
+import { useRef, useState } from "react";
+import { TextInput, TextInputKeyPressEvent, View } from "react-native";
 
 import Cell from "@/components/Cell";
-import { useEffect, useState } from "react";
-
 
 
 export default function Index() {
@@ -10,17 +9,33 @@ export default function Index() {
   const MAX_ATTEMPTS = 5;
 
   const [ currentGuess, setCurrentGuess ] = useState<string[]>( [] );
-  const [ allGuesses, setAllGuesses ] = useState<string[][]>( [ [] ] );
+  const [ allGuesses, setAllGuesses ] = useState<string[][]>( [] );
+  const input = useRef<TextInput>( null );
 
-  // Test to see board is working
-  useEffect( () => {
-    setAllGuesses( [
-      [ "a", "b", "c", "d", "a" ],
-      [ "a", "b", "c", "d", "a" ],
-      [ "a", "b", "c", "d", "a" ],
-    ] );
-    setCurrentGuess( [ "a", "c", "a", ] );
-  }, [] );
+
+  const handleOnKeyPress = ( e: TextInputKeyPressEvent ) => {
+    if ( allGuesses.length === MAX_ATTEMPTS ) {
+      return;
+    }
+    const key = e.nativeEvent.key;
+    if ( key === "Backspace" ) {
+      setCurrentGuess( ( prev ) => prev.slice( 0, -1 ) );
+    }
+    else if ( currentGuess.length < MAX_ATTEMPTS && /^[A-Za-z]$/.test( key ) ) {
+      setCurrentGuess( ( prev ) => [ ...prev, key.toUpperCase() ] );
+    }
+    else if ( currentGuess.length === WORDS_LENGTH && key === "Enter" ) {
+      setAllGuesses( ( prev ) => [ ...prev, currentGuess ] );
+      setCurrentGuess( [] );
+
+      // TODO: add word check
+
+      // force focus
+      setTimeout( () => {
+        input.current?.focus();
+      }, 10 );
+    }
+  };
 
 
   // Board setup using all guesses and current guess
@@ -57,9 +72,12 @@ export default function Index() {
         ) )
       }
       <TextInput style={ { backgroundColor: 'lightgray' } }
+        ref={ input }
         autoFocus
-        onKeyPress={ () => { } }
+        onKeyPress={ handleOnKeyPress }
         maxLength={ WORDS_LENGTH }
+        value={ currentGuess.join( '' ) }
+        editable={ allGuesses.length !== MAX_ATTEMPTS }
       />
     </View >
   );
