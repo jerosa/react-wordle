@@ -1,20 +1,35 @@
 import { useEffect, useRef, useState } from "react";
-import { Text, TextInput, TextInputKeyPressEvent, View } from "react-native";
+import { Text, TextInput, TextInputKeyPressEvent, TouchableOpacity, View } from "react-native";
 
 import Cell from "@/components/Cell";
+import { loadWords } from "@/hooks/load_words";
 
 
 export default function Index() {
   const WORDS_LENGTH = 5;
   const MAX_ATTEMPTS = 5;
 
-  const words = [ 'banal', 'proxy', 'siege' ];
+  const language = 'es';
+
+  const [ words, setWords ] = useState<string[]>( [] );
+  const [ wordToGuess, setWordToGuess ] = useState<string>( '' );
 
   const [ currentGuess, setCurrentGuess ] = useState<string[]>( [] );
   const [ history, setHistory ] = useState<{ guess: string[]; result: string[]; }[]>( [] );
-  const [ wordToGuess, setWordToGuess ] = useState( () => words[ Math.floor( Math.random() * words.length ) ] );
 
   const input = useRef<TextInput>( null ); // to enable focus
+
+  const selectWordToGuess = ( words: string[] ) => {
+    setWordToGuess( words[ Math.floor( Math.random() * words.length ) ] );
+  };
+
+  useEffect( () => {
+    loadWords( language ).then( words => {
+      setWords( words );
+      selectWordToGuess( words );
+    } );
+  }, [] );
+
 
   // Reset history and guess when wordToGuess changes
   useEffect( () => {
@@ -93,13 +108,23 @@ export default function Index() {
         gap: 10,
       } }
     >
-      <Text>Word To Guess:  { wordToGuess }</Text>
-      <Text
-        style={ { color: '#007aff', marginBottom: 10, textDecorationLine: 'underline', cursor: 'pointer' } }
-        onPress={ () => setWordToGuess( words[ Math.floor( Math.random() * words.length ) ] ) }
-      >
-        New Word
+      <Text style={ { fontSize: 32, fontWeight: 'bold', marginBottom: 20 } }>
+        WORDLE ({ ( language ) })
       </Text>
+      {/* <Text>Word To Guess:  { wordToGuess }</Text> */ }
+
+      <TouchableOpacity
+        style={ {
+          backgroundColor: '#007aff',
+          padding: 10,
+          borderRadius: 5
+        } }
+        onPress={ () => selectWordToGuess( words ) }
+      >
+        <Text style={ { color: '#fff' } }>
+          Nueva Palabra
+        </Text>
+      </TouchableOpacity>
 
       {
         board.map( ( word, i ) => (
