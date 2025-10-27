@@ -1,26 +1,20 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { Text, TouchableOpacity, View } from "react-native";
 
 import Board from "@/components/Board";
-import { loadWords } from "@/hooks/loadWords";
+import { useGameState } from "@/hooks/useGameState";
 
 export default function Index() {
   const WORDS_LENGTH = 5;
   const MAX_ATTEMPTS = 5;
   const language = 'es';
 
-  const [ words, setWords ] = useState<string[]>( [] );
-  const [ wordToGuess, setWordToGuess ] = useState<string>( '' );
+  const { gameState, selectNewWord, resetGame } = useGameState( language );
 
-  const selectWordToGuess = ( words: string[] ) => {
-    setWordToGuess( words[ Math.floor( Math.random() * words.length ) ] );
-  };
-
+  // Only run once on mount to initialize the game
   useEffect( () => {
-    loadWords( language ).then( words => {
-      setWords( words );
-      selectWordToGuess( words );
-    } );
+    selectNewWord();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [] );
 
 
@@ -35,10 +29,10 @@ export default function Index() {
       } }
     >
       <Text style={ { fontSize: 32, fontWeight: 'bold', marginBottom: 20 } }>
-        WORDLE ({ language })
+        WORDLE ({ language }) { gameState.status }
       </Text>
 
-      <Text>{ wordToGuess }</Text>
+      <Text>{ gameState.wordToGuess }</Text>
 
       <TouchableOpacity
         style={ {
@@ -46,7 +40,7 @@ export default function Index() {
           padding: 10,
           borderRadius: 5
         } }
-        onPress={ () => selectWordToGuess( words ) }
+        onPress={ resetGame }
       >
         <Text style={ { color: '#fff' } }>
           Nueva Palabra
@@ -54,7 +48,7 @@ export default function Index() {
       </TouchableOpacity>
 
       <Board
-        wordToGuess={ wordToGuess }
+        wordToGuess={ gameState.wordToGuess }
         maxAttempts={ MAX_ATTEMPTS }
         wordsLength={ WORDS_LENGTH }
       />
