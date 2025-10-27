@@ -3,13 +3,15 @@ import { useCallback, useState } from "react";
 import { LANGUAGES, loadWords } from "./loadWords";
 
 
-type GameStatus = 'playing' | 'won' | 'lost';
+export type GameStatus = 'playing' | 'won' | 'lost';
 
-interface GameState {
+export interface GameState {
   words: string[];
   wordToGuess: string;
   status: GameStatus;
   language: LANGUAGES;
+  maxAttempts: number;
+  wordsLength: number;
 }
 
 interface UseGameState {
@@ -20,12 +22,16 @@ interface UseGameState {
 }
 
 export const useGameState = ( initialLanguage: LANGUAGES = 'es' ): UseGameState => {
+  const DEFAULT_ATTEMPTS = 5;
+  const DEFAULT_WORD_LENGTH = 5;
 
   const [ gameState, setGameState ] = useState<GameState>( {
     words: [],
     wordToGuess: '',
     status: 'playing',
-    language: initialLanguage
+    language: initialLanguage,
+    maxAttempts: DEFAULT_ATTEMPTS,
+    wordsLength: DEFAULT_WORD_LENGTH
   } );
 
   const selectNewWord = useCallback( () => {
@@ -36,7 +42,8 @@ export const useGameState = ( initialLanguage: LANGUAGES = 'es' ): UseGameState 
           ...prev,
           words,
           wordToGuess: newWord,
-          status: 'playing'
+          status: 'playing',
+          wordsLength: newWord.length
         } ) );
       } );
     } else {
@@ -44,7 +51,8 @@ export const useGameState = ( initialLanguage: LANGUAGES = 'es' ): UseGameState 
       setGameState( prev => ( {
         ...prev,
         wordToGuess: newWord,
-        status: 'playing'
+        status: 'playing',
+        wordsLength: newWord.length
       } ) );
     }
   }, [ gameState.language, gameState.words ] );
@@ -60,7 +68,6 @@ export const useGameState = ( initialLanguage: LANGUAGES = 'es' ): UseGameState 
     selectNewWord();
   }, [ selectNewWord ] );
 
-
   return {
     // params
     gameState,
@@ -70,5 +77,4 @@ export const useGameState = ( initialLanguage: LANGUAGES = 'es' ): UseGameState 
     setGame,
     resetGame
   };
-
 };

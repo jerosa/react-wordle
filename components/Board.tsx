@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { TextInput, TextInputKeyPressEvent, View } from "react-native";
+
+import { GameState, GameStatus } from "@/hooks/useGameState";
 import Row from "./Row";
 
 interface BoardHistory {
@@ -7,19 +9,19 @@ interface BoardHistory {
   result: string[];
 }
 
+
 interface BoardProps {
-  wordToGuess: string;
-  maxAttempts: number;
-  wordsLength: number;
+  gameState: GameState;
+  onGameStatus: ( status: GameStatus ) => void;
 }
 
-export default function Board( { wordToGuess, maxAttempts, wordsLength }: BoardProps ) {
+export default function Board( { gameState, onGameStatus }: BoardProps ) {
+  const { wordToGuess, status: gameStatus, maxAttempts, wordsLength } = gameState;
 
   const [ currentGuess, setCurrentGuess ] = useState<string[]>( [] );
   const [ history, setHistory ] = useState<BoardHistory[]>( [] );
   const input = useRef<TextInput>( null );
 
-  // Reset history and guess when wordToGuess changes
   useEffect( () => {
     setHistory( [] );
     setCurrentGuess( [] );
@@ -57,15 +59,16 @@ export default function Board( { wordToGuess, maxAttempts, wordsLength }: BoardP
 
     const newHistory = [ ...history, { guess: guessArr, result: colors } ];
     setHistory( newHistory );
-
-    // TODO: Check if game is complete
+    const isWin = colors.every( color => color === 'green' );
+    if ( isWin ) {
+      onGameStatus( 'won' );
+    } else if ( newHistory.length === maxAttempts ) {
+      onGameStatus( 'lost' );
+    }
   };
 
-
   const handleGuessSubmission = () => {
-    if ( currentGuess.length !== wordsLength ) {
-      return;
-    }
+    if ( gameStatus !== 'playing' || currentGuess.length !== wordsLength ) return;
 
     submitGuess( currentGuess, wordToGuess );
     setCurrentGuess( [] );
@@ -75,10 +78,7 @@ export default function Board( { wordToGuess, maxAttempts, wordsLength }: BoardP
   };
 
   const handleOnKeyPress = ( e: TextInputKeyPressEvent ) => {
-    // check if max attempts reached. TODO: Check game complete status instead
-    if ( history.length === maxAttempts ) {
-      return;
-    }
+    if ( gameStatus !== 'playing' ) return;
 
     const key = e.nativeEvent.key;
     if ( key === 'Backspace' ) {
@@ -119,7 +119,7 @@ export default function Board( { wordToGuess, maxAttempts, wordsLength }: BoardP
         onSubmitEditing={ handleGuessSubmission }
         maxLength={ wordsLength }
         value={ currentGuess.join( '' ) }
-        editable={ history.length !== maxAttempts }
+        editable={ gameStatus === 'playing' }
       />
     </View>
   );
