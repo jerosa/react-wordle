@@ -61,6 +61,19 @@ export default function Board( { wordToGuess, maxAttempts, wordsLength }: BoardP
     // TODO: Check if game is complete
   };
 
+
+  const handleGuessSubmission = () => {
+    if ( currentGuess.length !== wordsLength ) {
+      return;
+    }
+
+    submitGuess( currentGuess, wordToGuess );
+    setCurrentGuess( [] );
+    setTimeout( () => {
+      input.current?.focus();
+    }, 100 );
+  };
+
   const handleOnKeyPress = ( e: TextInputKeyPressEvent ) => {
     // check if max attempts reached. TODO: Check game complete status instead
     if ( history.length === maxAttempts ) {
@@ -73,11 +86,7 @@ export default function Board( { wordToGuess, maxAttempts, wordsLength }: BoardP
     } else if ( currentGuess.length < wordsLength && /^[A-Za-z]$/.test( key ) ) {
       setCurrentGuess( prev => [ ...prev, key.toUpperCase() ] );
     } else if ( currentGuess.length === wordsLength && key === 'Enter' ) {
-      submitGuess( currentGuess, wordToGuess );
-      setCurrentGuess( [] );
-      setTimeout( () => {
-        input.current?.focus();
-      }, 10 );
+      handleGuessSubmission();
     }
   };
 
@@ -107,6 +116,7 @@ export default function Board( { wordToGuess, maxAttempts, wordsLength }: BoardP
         ref={ input }
         autoFocus
         onKeyPress={ handleOnKeyPress }
+        onSubmitEditing={ handleGuessSubmission }
         maxLength={ wordsLength }
         value={ currentGuess.join( '' ) }
         editable={ history.length !== maxAttempts }
